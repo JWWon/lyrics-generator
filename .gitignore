@@ -1,0 +1,4 @@
+# Pretrained Weight
+*.pyc
+*.npy
+*.pkl
