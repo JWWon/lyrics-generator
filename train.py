@@ -113,13 +113,13 @@ def train(args):
             # Construct categorical distribution and sample a character
             output = F.softmax(torch.squeeze(output), dim=0)
             dist = Categorical(output)
-            index = dist.sample()
+            index = dist.sample().item()
 
             # Print sample
-            print(idx_to_char[index.item()], end='')
+            print(idx_to_char[index], end='')
 
             # Next input is current output
-            input_seq[0][0] = index.item()
+            input_seq[0][0] = index
             data_ptr += 1
 
             if data_ptr > args.output_seq_len:
