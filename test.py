@@ -48,7 +48,7 @@ def test(args):
     model = Model(input_size=vocab_size, output_size=vocab_size, hidden_size=args.hidden_size, num_layers=args.num_layers).to(device)
     print(f"Loading pretrained weight from {args.load_file}...")
     try:
-        model.load_state_dict(torch.load(args.load_file))
+        model.load_state_dict(torch.load(args.load_file), strict=False)
     except:
         sys.exit("Model should be trained before testing")
     print("Successfully load weight from file")
