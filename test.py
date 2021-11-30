@@ -22,7 +22,7 @@ def main():
 
 def test(args):
     # Load text file
-    data = open(args.data_path + "input.txt", 'r').read()
+    data = open(args.data_path + "input.txt", 'r', encoding='utf-8').read()
     vocab = sorted(list(set(data)))
     data_size, vocab_size = len(data), len(vocab)
     print("################################################################################")

@@ -26,7 +26,7 @@ def main():
 
 def train(args):
     # Load text file
-    data = open(args.data_path + "input.txt", 'r').read() # 전체 데이터
+    data = open(args.data_path + "input.txt", 'r', encoding='utf-8').read() # 전체 데이터
     vocab = sorted(list(set(data)))         # 단어 리스트
     data_size, vocab_size = len(data), len(vocab)
     print("################################################################################")
