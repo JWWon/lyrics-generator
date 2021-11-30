@@ -16,18 +16,17 @@ def main():
     parser.add_argument('--num_layers', type=int, default=3, help='Num of layers in RNN layer stack')
     parser.add_argument('--output_seq_len', type=int, default=500, help='Total num of characters in output test sequence')
     parser.add_argument('--start_text', type=str, default=None, help='Text which starts the generator')
-    parser.add_argument('--load_file', type=str, default='./pretrained/iu_lyrics.pth')
-    parser.add_argument('--data_file', type=str, default='./data/iu_lyrics.txt')
+    parser.add_argument('--data_path', type=str, default='./data/ballad/')
     args = parser.parse_args()
     test(args)
 
 def test(args):
     # Load text file
-    data = open(args.data_file, 'r').read()
+    data = open(args.data_path + "input.txt", 'r').read()
     vocab = sorted(list(set(data)))
     data_size, vocab_size = len(data), len(vocab)
     print("################################################################################")
-    print(f"## Data {args.data_file} has {data_size} characters, and {vocab_size} unique vocabularies ##")
+    print(f"## Data {args.data_path} has {data_size} characters, and {vocab_size} unique vocabularies ##")
     print("################################################################################")
     print("")
 
@@ -46,9 +45,9 @@ def test(args):
 
     # Create model instance and load pretrained weight
     model = Model(input_size=vocab_size, output_size=vocab_size, hidden_size=args.hidden_size, num_layers=args.num_layers).to(device)
-    print(f"Loading pretrained weight from {args.load_file}...")
+    print(f"Loading pretrained weight from {args.data_path}...")
     try:
-        model.load_state_dict(torch.load(args.load_file), strict=False)
+        model.load_state_dict(torch.load(args.data_path + "last.pth"), strict=False)
     except:
         sys.exit("Model should be trained before testing")
     print("Successfully load weight from file")

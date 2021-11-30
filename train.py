@@ -20,17 +20,17 @@ def main():
     parser.add_argument('--output_seq_len', type=int, default=200, help='Total num of characters in output test sequence')
     parser.add_argument('--resume', type=bool, default=False, help='Load weights from save_file to resume training')
     parser.add_argument('--save_file', type=str, default='./pretrained/iu_lyrics.pth')
-    parser.add_argument('--data_file', type=str, default='./data/iu_lyrics.txt')
+    parser.add_argument('--data_path', type=str, default='./data/ballad/')
     args = parser.parse_args()
     train(args)
 
 def train(args):
     # Load text file
-    data = open(args.data_file, 'r').read() # 전체 데이터
+    data = open(args.data_path + "input.txt", 'r').read() # 전체 데이터
     vocab = sorted(list(set(data)))         # 단어 리스트
     data_size, vocab_size = len(data), len(vocab)
     print("################################################################################")
-    print(f"## Data {args.data_file} has {data_size} characters, and {vocab_size} unique vocabularies ##")
+    print(f"## Data {args.data_path} has {data_size} characters, and {vocab_size} unique vocabularies ##")
     print("################################################################################")
     print("")
 
@@ -52,8 +52,8 @@ def train(args):
 
     # Load checkpoint if required
     if args.resume == True:
-        print(f"Loading pretrained weight from {args.save_file}...")
-        model.load_state_dict(torch.load(args.save_file))
+        print(f"Loading pretrained weight from {args.data_path}...")
+        model.load_state_dict(torch.load(args.data_path + "last.pth"))
         print("Successfully load weight from file")
         print("")
 
@@ -95,7 +95,7 @@ def train(args):
 
         print("Epoch: {0} | Loss: {1:.8f}".format(epoch, running_loss / n))
         print("")
-        torch.save(model.state_dict(), args.save_file)
+        torch.save(model.state_dict(), args.data_path + "last.pth")
 
         # Sample / Generate a text sequence after every epoch
         data_ptr = 0
