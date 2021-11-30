@@ -5,6 +5,8 @@ from torch.distributions import Categorical
 import numpy as np
 
 import argparse
+import glob
+import datetime
 
 from model import Model
 
@@ -19,10 +21,16 @@ def main():
     parser.add_argument('--epochs', type=int, default=100, help='Maximum numbers of epochs')
     parser.add_argument('--output_seq_len', type=int, default=200, help='Total num of characters in output test sequence')
     parser.add_argument('--resume', type=bool, default=False, help='Load weights from save_file to resume training')
-    parser.add_argument('--save_file', type=str, default='./pretrained/iu_lyrics.pth')
-    parser.add_argument('--data_path', type=str, default='./data/ballad/')
+    parser.add_argument('--save_dict', type=str, default=None, help='Strict set name of state dict. Type of file should be *.pth')
+    parser.add_argument('--data_path', type=str, default='./data/ballad/', help='Directory which data and state dict exists')
     args = parser.parse_args()
     train(args)
+
+def get_latest_state_dict(data_path: str):
+    return glob.glob(data_path + "last*.pth")[-1]
+
+def get_current_timestamp():
+    return int(round(datetime.datetime.now().timestamp()))
 
 def train(args):
     # Load text file
@@ -52,8 +60,8 @@ def train(args):
 
     # Load checkpoint if required
     if args.resume == True:
-        print(f"Loading pretrained weight from {args.data_path}...")
-        model.load_state_dict(torch.load(args.data_path + "last.pth"))
+        print(f"Loading pretrained weight from {get_latest_state_dict(args.data_path)}...")
+        model.load_state_dict(torch.load(get_latest_state_dict(args.data_path)))
         print("Successfully load weight from file")
         print("")
 
@@ -62,7 +70,8 @@ def train(args):
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)    # TODO: Find best optimizer function
 
     # Training loop
-    print(f"Start training on {device}")
+    save_dict = args.data_path + (args.save_dict if args.save_dict != None else f"last{get_current_timestamp()}.pth")
+    print(f"Start training on {device}, Save dict will be saved on {save_dict}")
     print("")
     for epoch in range(1, args.epochs + 1):
         data_ptr = np.random.randint(100)
@@ -95,7 +104,7 @@ def train(args):
 
         print("Epoch: {0} | Loss: {1:.8f}".format(epoch, running_loss / n))
         print("")
-        torch.save(model.state_dict(), args.data_path + "last.pth")
+        torch.save(model.state_dict(), save_dict)
 
         # Sample / Generate a text sequence after every epoch
         data_ptr = 0
