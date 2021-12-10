@@ -4,7 +4,7 @@ from torch.distributions import Categorical
 import numpy as np
 
 import os
-import glob
+from glob import glob
 import argparse
 
 from model import Model
@@ -17,13 +17,13 @@ def main():
     parser.add_argument('--num_layers', type=int, default=3, help='Num of layers in RNN layer stack')
     parser.add_argument('--output_seq_len', type=int, default=500, help='Total num of characters in output test sequence')
     parser.add_argument('--start_text', type=str, default=None, help='Text which starts the generator')
-    parser.add_argument('--load_dict', type=str, default=None, help='Strict set name of exist state dict. Type of file should be *.pth')
     parser.add_argument('--data_path', type=str, default='./data/ballad/', help='Directory which data and state dict exists')
+    parser.add_argument('--load_name', type=str, default=None, help='Name of training result directory. Type of file should be {name}/last.pth')
     args = parser.parse_args()
     test(args)
 
 def get_latest_state_dict(data_path: str):
-    return glob.glob(data_path + "last*.pth")[-1]
+    return glob(data_path + "*/last.pth")[-1]
 
 def test(args):
     # Load text file
@@ -50,7 +50,7 @@ def test(args):
 
     # Create model instance and load pretrained weight
     model = Model(input_size=vocab_size, output_size=vocab_size, hidden_size=args.hidden_size, num_layers=args.num_layers).to(device)
-    load_dict = args.data_path + args.load_dict if args.load_dict != None else get_latest_state_dict(args.data_path)
+    load_dict = args.data_path + args.load_name if args.load_name != None else get_latest_state_dict(args.data_path)
     print(f"Loading pretrained weight from {load_dict}...")
     try:
         model.load_state_dict(torch.load(load_dict), strict=False)
