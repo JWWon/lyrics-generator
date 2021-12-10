@@ -1,9 +1,11 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.utils.tensorboard import SummaryWriter
 from torch.distributions import Categorical
 import numpy as np
 
+import os
 import argparse
 import glob
 import datetime
@@ -21,8 +23,8 @@ def main():
     parser.add_argument('--epochs', type=int, default=100, help='Maximum numbers of epochs')
     parser.add_argument('--output_seq_len', type=int, default=200, help='Total num of characters in output test sequence')
     parser.add_argument('--resume', type=bool, default=False, help='Load weights from save_file to resume training')
-    parser.add_argument('--save_dict', type=str, default=None, help='Strict set name of state dict. Type of file should be *.pth')
     parser.add_argument('--data_path', type=str, default='./data/ballad/', help='Directory which data and state dict exists')
+    parser.add_argument('--save_name', type=str, default=None, help='Name of training result directory. Type of file should be {title}/last.pth')
     args = parser.parse_args()
     train(args)
 
@@ -33,6 +35,7 @@ def get_current_timestamp():
     return int(round(datetime.datetime.now().timestamp()))
 
 def train(args):
+        
     # Load text file
     data = open(args.data_path + "input.txt", 'r', encoding='utf-8').read() # 전체 데이터
     vocab = sorted(list(set(data)))         # 단어 리스트
@@ -70,7 +73,11 @@ def train(args):
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)    # TODO: Find best optimizer function
 
     # Training loop
-    save_dict = args.data_path + (args.save_dict if args.save_dict != None else f"last{get_current_timestamp()}.pth")
+    save_name = args.save_name if args.save_name != None else f"{get_current_timestamp()}"
+    save_path = args.data_path + save_name
+    save_dict = save_path + '/last.pth'
+    log_path = save_path + '/log'
+    writer = SummaryWriter(log_path)
     print(f"Start training on {device}, Save dict will be saved on {save_dict}")
     print("")
     for epoch in range(1, args.epochs + 1):
@@ -104,6 +111,7 @@ def train(args):
 
         print("Epoch: {0} | Loss: {1:.8f}".format(epoch, running_loss / n))
         print("")
+        writer.add_scalar("Loss/train", running_loss / n, epoch)
         torch.save(model.state_dict(), save_dict)
 
         # Sample / Generate a text sequence after every epoch
@@ -136,6 +144,9 @@ def train(args):
 
         print("\n-----------------------------------------")
 
+    writer.flush()
+    writer.close()
+    os.system(f"tensorboard dev upload --logdir {log_path} --name '{save_name}'")
 
 if __name__ == '__main__':
     main()
