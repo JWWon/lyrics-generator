@@ -110,8 +110,11 @@ def train(args):
                 break
 
         print("Epoch: {0} | Loss: {1:.8f}".format(epoch, running_loss / n))
-        print("")
+        
         writer.add_scalar("Loss/train", running_loss / n, epoch)
+        for name, param in model.named_parameters():
+            writer.add_histogram(name, param.clone().cpu().data.numpy(), epoch)
+        
         torch.save(model.state_dict(), save_dict)
 
         # Sample / Generate a text sequence after every epoch
@@ -123,30 +126,40 @@ def train(args):
         input_seq = data[rand_index:rand_index+1]
 
         # Print sample text
-        while True:
-            # forward
-            output, hidden_state = model(input_seq, hidden_state)
+        if epoch % 10 == 0:
+            pred_text = ''
+            while True:
+                # forward
+                output, hidden_state = model(input_seq, hidden_state)
 
-            # Construct categorical distribution and sample a character
-            output = F.softmax(torch.squeeze(output), dim=0)
-            dist = Categorical(output)
-            index = dist.sample().item()
+                # Construct categorical distribution and sample a character
+                output = F.softmax(torch.squeeze(output), dim=0)
+                dist = Categorical(output)
+                index = dist.sample().item()
 
-            # Print sample
-            print(idx_to_char[index], end='')
+                # Save sample
+                pred_text += idx_to_char[index]
 
-            # Next input is current output
-            input_seq[0][0] = index
-            data_ptr += 1
+                # Next input is current output
+                input_seq[0][0] = index
+                data_ptr += 1
 
-            if data_ptr > args.output_seq_len:
-                break
+                if data_ptr > args.output_seq_len:
+                    break
+        
+            print("\nPrediction\n")
+            print(pred_text)
 
-        print("\n-----------------------------------------")
+            writer.add_text("Pred", pred_text, epoch)
+            writer.flush()
 
-    writer.flush()
+        print("-----------------------------------------")
+
+    rand_index = np.random.randint(data_size - 1)
+    input_seq = data[rand_index:rand_index + 1]
+
     writer.close()
-    os.system(f"tensorboard dev upload --logdir {log_path} --name '{save_name}'")
+    os.system(f"tensorboard dev upload --logdir {log_path} --name 'Lyricist' --one_shot")
 
 if __name__ == '__main__':
     main()
