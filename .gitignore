@@ -3,4 +3,7 @@
 *.npy
 *.pkl
 
+# Log
+log/
+
 __pycache__
