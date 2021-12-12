@@ -29,11 +29,23 @@ def main():
     args = parser.parse_args()
     train(args)
 
+
 def get_latest_state_dict(data_path: str):
     return glob.glob(data_path + "last*.pth")[-1]
 
+
 def get_current_timestamp():
     return int(round(datetime.datetime.now().timestamp()))
+
+
+def get_matrix_accuracy(truth, pred):
+    truth_max = torch.argmax(truth, dim=0)
+    pred_max = torch.argmax(pred, dim=0)
+
+    match = torch.sum(truth_max == pred_max)
+
+    return match.item() / truth_max.size(0)
+
 
 def train(args):
         
@@ -85,6 +97,7 @@ def train(args):
     for epoch in range(1, args.epochs + 1):
         data_ptr = np.random.randint(100)
         n = 0
+        running_accuracy = 0
         running_loss = 0
         hidden_state = None
 
@@ -95,9 +108,13 @@ def train(args):
             # forward
             output, hidden_state = model(input_seq, hidden_state)
 
+            # accuracy
+            running_accuracy += get_matrix_accuracy(torch.squeeze(output), torch.squeeze(target_seq))
+
             # loss
             loss = loss_fn(torch.squeeze(output), torch.squeeze(target_seq))
             running_loss += loss.item()
+
 
             # optimize
             optimizer.zero_grad()
@@ -111,9 +128,12 @@ def train(args):
             if data_ptr + args.seq_len + 1 > data_size:
                 break
 
-        print("Epoch: {0} | Loss: {1:.8f}".format(epoch, running_loss / n))
+        sum_accuracy = running_accuracy / n
+        sum_loss = running_loss / n
+        print(f"Epoch: {epoch} | Accuracy: {sum_accuracy:.6f} | Loss: {sum_loss:.8f}")
         
-        writer.add_scalar("Loss/train", running_loss / n, epoch)
+        writer.add_scalar("Accuracy/train", sum_accuracy, epoch)
+        writer.add_scalar("Loss/train", sum_loss, epoch)
         for name, param in model.named_parameters():
             writer.add_histogram(name, param.clone().cpu().data.numpy(), epoch)
         
