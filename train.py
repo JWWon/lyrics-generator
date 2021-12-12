@@ -5,6 +5,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.distributions import Categorical
 import numpy as np
 
+import json
 import os
 import argparse
 import glob
@@ -78,8 +79,9 @@ def train(args):
     save_dict = save_path + '/last.pth'
     log_path = save_path + '/log'
     writer = SummaryWriter(log_path)
+    writer.add_text('arguments', json.dumps(vars(args)))
     print(f"Start training on {device}, Save dict will be saved on {save_dict}")
-    print("")
+    print(f"Arguments: {json.dumps(vars(args))}\n")
     for epoch in range(1, args.epochs + 1):
         data_ptr = np.random.randint(100)
         n = 0
@@ -155,11 +157,8 @@ def train(args):
 
         print("-----------------------------------------")
 
-    rand_index = np.random.randint(data_size - 1)
-    input_seq = data[rand_index:rand_index + 1]
-
     writer.close()
-    os.system(f"tensorboard dev upload --logdir {log_path} --name 'Lyricist' --one_shot")
+    os.system(f"tensorboard dev upload --logdir {log_path} --name 'train_{save_name}' --one_shot")
 
 if __name__ == '__main__':
     main()
