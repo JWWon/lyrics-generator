@@ -26,6 +26,7 @@ def main():
     parser.add_argument('--resume', type=bool, default=False, help='Load weights from save_file to resume training')
     parser.add_argument('--data_path', type=str, default='./data/ballad/', help='Directory which data and state dict exists')
     parser.add_argument('--save_name', type=str, default=None, help='Name of training result directory. Type of file should be {title}/last.pth')
+    parser.add_argument('--dropout', type=float, default=0.3, help='Select dropout size')
     args = parser.parse_args()
     train(args)
 
@@ -72,7 +73,7 @@ def train(args):
     data = torch.unsqueeze(data, dim=1)
 
     # Model instance
-    model = Model(input_size=vocab_size, output_size=vocab_size, hidden_size=args.hidden_size, num_layers=args.num_layers).to(device)
+    model = Model(input_size=vocab_size, output_size=vocab_size, hidden_size=args.hidden_size, num_layers=args.num_layers, dropout=args.dropout).to(device)
 
     # Load checkpoint if required
     if args.resume == True:
@@ -114,7 +115,6 @@ def train(args):
             # loss
             loss = loss_fn(torch.squeeze(output), torch.squeeze(target_seq))
             running_loss += loss.item()
-
 
             # optimize
             optimizer.zero_grad()
