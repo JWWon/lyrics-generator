@@ -23,7 +23,7 @@ def main():
     test(args)
 
 def get_latest_state_dict(data_path: str):
-    return glob(data_path + "*/last.pth")[-1]
+    return glob(data_path + "*")[-1]
 
 def test(args):
     # Load text file
@@ -50,7 +50,8 @@ def test(args):
 
     # Create model instance and load pretrained weight
     model = Model(input_size=vocab_size, output_size=vocab_size, hidden_size=args.hidden_size, num_layers=args.num_layers).to(device)
-    load_dict = args.data_path + args.load_name if args.load_name != None else get_latest_state_dict(args.data_path)
+    load_path = args.data_path + args.load_name if args.load_name != None else get_latest_state_dict(args.data_path)
+    load_dict = load_path + "/last.pth"
     print(f"Loading pretrained weight from {load_dict}...")
     try:
         model.load_state_dict(torch.load(load_dict), strict=False)
