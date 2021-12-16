@@ -49,7 +49,7 @@ def test(args):
     data = torch.unsqueeze(data, dim=1)
 
     # Create model instance and load pretrained weight
-    model = Model(input_size=vocab_size, output_size=vocab_size, hidden_size=args.hidden_size, num_layers=args.num_layers).to(device)
+    model = Model(input_size=vocab_size, output_size=vocab_size, hidden_size=args.hidden_size, num_layers=args.num_layers, dropout=0.3).to(device)
     load_path = args.data_path + args.load_name if args.load_name != None else get_latest_state_dict(args.data_path)
     load_dict = load_path + "/last.pth"
     print(f"Loading pretrained weight from {load_dict}...")
